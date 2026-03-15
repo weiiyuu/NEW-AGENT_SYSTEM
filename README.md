@@ -13,10 +13,10 @@
 | 目錄/檔案 | 說明 | 用途 |
 |---------|------|------|
 | `NEW-AGENT_SYSTEM/` | 專案根目錄 | 所有指令皆從此執行 |
-| ├── `auto_run_pipline.py` | 主程式 | 啟動整個 Agent Pipeline |
+| ├── `auto_run_pipeline.py` | 主程式 | 啟動整個 Agent Pipeline |
 | ├── `src/` | 核心程式碼 | 包含所有 Agent 與 Pipeline 邏輯 |
 | │   ├── `agents/` | Agent 邏輯層 | `crawler_agent`、`cleaner_agent`、`analyzer_agent`、`writer_agent`、`reporter_agent` 等 |
-| │   ├── `pipline.py` | Pipeline 流程控制 | 負責協調各 Agent 執行順序 |
+| │   ├── `pipeline.py` | Pipeline 流程控制 | 負責協調各 Agent 執行順序 |
 | │   └── `utils/` | 工具模組 | `io_helper.py` 等 I/O 輔助功能 |
 | ├── `data/` | 數據儲存區 | 運行後生成的所有資料 |
 | │   ├── `analysis_charts/` | 圖表輸出 | `monthly/` 與 `weekly/` 報表圖 |
@@ -70,25 +70,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
-
-### ⚠️ 字體問題注意（Linux 特別重要）
-
-ReporterAgent 會生成中文圖表。  
-若你在 Linux 上看到 **□ 方塊字**，請安裝：
-
-```bash
-sudo apt install fonts-wqy-zenhei
-```
-
----
 
 ## ▶ 運行專案 (Running the Pipeline)
 
 所有指令請在專案根目錄執行：
 
 ```bash
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 程式會依照「今日日期」自動判斷是否產生：
@@ -127,7 +115,7 @@ python auto_run_pipline.py
 export TEST_MODE=1
 export TEST_FILE="data/master_test_weekly.csv"
 export TEST_DATE="2025-11-24"
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ### Windows
@@ -136,7 +124,7 @@ python auto_run_pipline.py
 set TEST_MODE=1
 set TEST_FILE=data/master_test_weekly.csv
 set TEST_DATE=2025-11-24
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ---
@@ -151,7 +139,7 @@ python auto_run_pipline.py
 export TEST_MODE=1
 export TEST_FILE="data/master_test_monthly.csv"
 export TEST_DATE="2025-11-01"
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ### Windows
@@ -160,7 +148,7 @@ python auto_run_pipline.py
 set TEST_MODE=1
 set TEST_FILE=data/master_test_monthly.csv
 set TEST_DATE=2025-11-01
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ---
@@ -178,7 +166,7 @@ python auto_run_pipline.py
 export TEST_MODE=1
 export TEST_FILE="data/master_test.csv"
 export TEST_DATE="2025-12-01"
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ### Windows
@@ -187,7 +175,7 @@ python auto_run_pipline.py
 set TEST_MODE=1
 set TEST_FILE=data/master_test.csv
 set TEST_DATE=2025-12-01
-python auto_run_pipline.py
+python auto_run_pipeline.py
 ```
 
 ---

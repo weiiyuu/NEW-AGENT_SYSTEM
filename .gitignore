@@ -1,0 +1,29 @@
+# Python 暫存檔
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 資料區
+data/*.csv
+data/raw/*.csv
+data/analysis_history/*.json
+data/analysis_charts/**/*.png
+
+# 確保資料夾結構
+!data/raw/.gitkeep
+!data/analysis_history/.gitkeep
+!data/analysis_charts/.gitkeep
+!data/analysis_charts/monthly/.gitkeep
+!data/analysis_charts/weekly/.gitkeep
+
+# 範例檔案
+!data/analysis_history/analysis_result_demo.json
+!data/analysis_charts/monthly/2025-12-01/30d_tags_stacked_top10_demo.png
+!data/analysis_charts/weekly/2025-12-01/weekly_top_tags_top10_demo.png
+
+# 敏感資訊
+.env
+
+# IDE 設定
+.vscode/
+.DS_Store
