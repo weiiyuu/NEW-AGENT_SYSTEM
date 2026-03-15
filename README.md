@@ -4,7 +4,18 @@
 
 `NEW-AGENT_SYSTEM` 是一個多代理 (Multi-Agent) 驅動的數據管線系統，用於自動化爬取、清理、分析新聞內容，並依照日期 (日、週、月) 自動產生不同層級的分析報告與圖表，最後透過 Webhook 推送至下游系統（例如 n8n）。
 
----
+------------------------------------------------------------------------------
+
+## 📊 成果預覽 (Demo Results)
+
+若您尚未運行程式，可直接查看以下預先保留的 Demo 檔案，了解系統產出格式：
+
+1. **分析報告**：`data/analysis_history/analysis_result_demo.json`
+2. **視覺化圖表**：
+   - 月報圖片範例：`data/analysis_charts/monthly/2025-12-01/30d_tags_stacked_top10_demo.png`
+   - 週報圖片範例：`data/analysis_charts/weekly/2025-12-01/weekly_top_tags_top10_demo.png`
+
+------------------------------------------------------------------------------
 
 ## 📁 專案目錄結構 (Directory Structure)
 
@@ -19,14 +30,23 @@
 | │   ├── `pipeline.py` | Pipeline 流程控制 | 負責協調各 Agent 執行順序 |
 | │   └── `utils/` | 工具模組 | `io_helper.py` 等 I/O 輔助功能 |
 | ├── `data/` | 數據儲存區 | 運行後生成的所有資料 |
-| │   ├── `analysis_charts/` | 圖表輸出 | `monthly/` 與 `weekly/` 報表圖 |
-| │   ├── `analysis_history/` | 分析歷史 | Analyzer 輸出的 `.json` 分析記錄 |
-| │   └── `raw/` | 原始資料 | 每日爬取與 master.csv 儲存地 |
+| │   ├── `analysis_charts/` | 圖表輸出 | 包含 `monthly/` 與 `weekly/` 結構，**內含 Demo 範例** |
+| │   ├── `analysis_history/` | 分析歷史 | Analyzer 輸出的 `.json` 記錄，**內含 Demo 範例** |
+| │   └── `raw/` | 原始資料 | 每日爬取與 master.csv 儲存地（已預建目錄結構）|
 | ├── `scripts/` | 測試腳本 | 用於產生測試資料 |
 | ├── `requirements.txt` | 套件清單 | 系統必要第三方套件 |
 | └── `README.md` | 專案說明文件 | **你正在看的這份檔案** |
 
----
+為了確保專案在 Clone 後即可直接運行，本專案採用 `.gitkeep` 確保 `data/` 下的所有層級目錄（如 `monthly/`, `weekly/`）在 Git 倉庫中完整保留。
+**💡 提示**：若想實際操作並生成新檔案，建議先執行 `python auto_run_pipeline.py`。系統會自動將新產出存入對應資料夾，且不會影響現有的 Demo 檔案。
+
+------------------------------------------------------------------------------
+
+### 環境一致性 (Reproducibility)
+環境隔離：
+- **依賴管理**：透過 `pip freeze` 產出 `requirements.txt`，確保所有套件版本與開發環境完全一致。
+- **Git 忽略規則**：透過 `.gitignore` 精準排除 `__pycache__`、`.DS_Store` 及大量測試用原始數據，保持倉庫輕量化。
+
 
 ## 🛠 環境設置與安裝 (Setup & Installation)
 
@@ -42,34 +62,25 @@ cd NEW-AGENT_SYSTEM
 
 ### 2. 建立虛擬環境（強烈建議）
 
+**使用 Conda:**
+```bash
+conda create -n news-agent python=3.9
+conda activate news-agent
+```
+
+**使用 venv:**
 ```bash
 python -m venv venv
+source venv/bin/activate  # macOS/Linux
 ```
 
 ---
 
-### 3. 啟動虛擬環境
-
-**macOS / Linux**
-
-```bash
-source venv/bin/activate
-```
-
-**Windows**
-
-```bash
-.\venv\Scripts\activate
-```
-
----
-
-### 4. 安裝專案依賴
+### 3. 安裝專案依賴
 
 ```bash
 pip install -r requirements.txt
 ```
-
 
 ## ▶ 運行專案 (Running the Pipeline)
 
@@ -85,7 +96,7 @@ python auto_run_pipeline.py
 - 週報 Weekly Report（週一）  
 - 月報 Monthly Report（每月 1 日）  
 
----
+------------------------------------------------------------------------------
 
 ## 🧪 測試模式（Test Mode）
 
@@ -112,19 +123,17 @@ python auto_run_pipeline.py
 ### macOS / Linux
 
 ```bash
-export TEST_MODE=1
-export TEST_FILE="data/master_test_weekly.csv"
-export TEST_DATE="2025-11-24"
+export TEST_MODE=1 TEST_FILE="data/master_test_weekly.csv" TEST_DATE="2025-11-24" # TEST_DATE 可改為最近的週一日期
 python auto_run_pipeline.py
+unset TEST_MODE TEST_FILE TEST_DATE
 ```
 
 ### Windows
 
 ```bash
-set TEST_MODE=1
-set TEST_FILE=data/master_test_weekly.csv
-set TEST_DATE=2025-11-24
+$env:TEST_MODE="1"; $env:TEST_FILE="data/master_test_weekly.csv"; $env:TEST_DATE="2025-11-24" # TEST_DATE 可改為最近的週一日期
 python auto_run_pipeline.py
+Remove-Item Env:TEST_MODE, Env:TEST_FILE, Env:TEST_DATE
 ```
 
 ---
@@ -136,19 +145,17 @@ python auto_run_pipeline.py
 ### macOS / Linux
 
 ```bash
-export TEST_MODE=1
-export TEST_FILE="data/master_test_monthly.csv"
-export TEST_DATE="2025-11-01"
+export TEST_MODE=1 TEST_FILE="data/master_test_monthly.csv" TEST_DATE="2025-11-01" # TEST_DATE 可改為最近月份的一號
 python auto_run_pipeline.py
+unset TEST_MODE TEST_FILE TEST_DATE
 ```
 
 ### Windows
 
 ```bash
-set TEST_MODE=1
-set TEST_FILE=data/master_test_monthly.csv
-set TEST_DATE=2025-11-01
+$env:TEST_MODE="1"; $env:TEST_FILE="data/master_test_monthly.csv"; $env:TEST_DATE="2025-11-01" # TEST_DATE 可改為最近月份的一號
 python auto_run_pipeline.py
+Remove-Item Env:TEST_MODE, Env:TEST_FILE, Env:TEST_DATE
 ```
 
 ---
@@ -163,39 +170,17 @@ python auto_run_pipeline.py
 ### macOS / Linux
 
 ```bash
-export TEST_MODE=1
-export TEST_FILE="data/master_test.csv"
-export TEST_DATE="2025-12-01"
+export TEST_MODE=1 TEST_FILE="data/master_test.csv" TEST_DATE="2025-12-01" # TEST_DATE 可改為最近的符合條件的日期
 python auto_run_pipeline.py
+unset TEST_MODE TEST_FILE TEST_DATE
 ```
 
 ### Windows
 
 ```bash
-set TEST_MODE=1
-set TEST_FILE=data/master_test.csv
-set TEST_DATE=2025-12-01
+$env:TEST_MODE="1"; $env:TEST_FILE="data/master_test.csv"; $env:TEST_DATE="2025-12-01" # TEST_DATE 可改為最近的符合條件的日期
 python auto_run_pipeline.py
+Remove-Item Env:TEST_MODE, Env:TEST_FILE, Env:TEST_DATE
 ```
 
 ---
-
-## 測試模式運行結束後請記得恢復環境變數，以免無法觸發正式環境的爬蟲抓取：
-
-```bash
-unset TEST_MODE
-unset TEST_FILE
-unset TEST_DATE
-```
-
----
-
-### 當前資料夾已存在：
-1. Daily + Weekly + Monthly（混合測試）的檔案（分析結果、圖表）
-2. 12/4 當日實際爬取的檔案 （CSV、分析結果）
-
-若想要實際操作，並更直觀地看到檔案確實會被存取到預定位置，可以前往：
-1. raw
-2. analysis_history
-3. analysis_charts 內的 weekly、monthly
-等資料夾內把所有檔案清空，再開始運行測試。
