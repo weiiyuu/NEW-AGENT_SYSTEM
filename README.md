@@ -19,25 +19,42 @@
 
 ## 📁 專案目錄結構 (Directory Structure)
 
-下方為系統結構與用途說明：
-
-| 目錄/檔案 | 說明 | 用途 |
-|---------|------|------|
-| `NEW-AGENT_SYSTEM/` | 專案根目錄 | 所有指令皆從此執行 |
-| ├── `auto_run_pipeline.py` | 主程式 | 啟動整個 Agent Pipeline |
-| ├── `src/` | 核心程式碼 | 包含所有 Agent 與 Pipeline 邏輯 |
-| │   ├── `agents/` | Agent 邏輯層 | `crawler_agent`、`cleaner_agent`、`analyzer_agent`、`writer_agent`、`reporter_agent` 等 |
-| │   ├── `pipeline.py` | Pipeline 流程控制 | 負責協調各 Agent 執行順序 |
-| │   └── `utils/` | 工具模組 | `io_helper.py` 等 I/O 輔助功能 |
-| ├── `data/` | 數據儲存區 | 運行後生成的所有資料 |
-| │   ├── `analysis_charts/` | 圖表輸出 | 包含 `monthly/` 與 `weekly/` 結構，**內含 Demo 範例** |
-| │   ├── `analysis_history/` | 分析歷史 | Analyzer 輸出的 `.json` 記錄，**內含 Demo 範例** |
-| │   └── `raw/` | 原始資料 | 每日爬取與 master.csv 儲存地（已預建目錄結構）|
-| ├── `scripts/` | 測試腳本 | 用於產生測試資料 |
-| ├── `requirements.txt` | 套件清單 | 系統必要第三方套件 |
-| └── `README.md` | 專案說明文件 | **你正在看的這份檔案** |
+```text
+NEW-AGENT_SYSTEM/
+│
+├── auto_run_pipeline.py        # 主程式，啟動整個 Agent Pipeline
+│
+├── src/                        # 核心程式碼
+│   ├── agents/                 # Agent 邏輯層
+│   │   ├── crawler_agent.py
+│   │   ├── cleaner_agent.py
+│   │   ├── analyzer_agent.py
+│   │   ├── writer_agent.py
+│   │   └── reporter_agent.py
+│   │
+│   ├── pipeline.py             # Pipeline 流程控制
+│   │
+│   └── utils/                  # 工具模組
+│       └── io_helper.py
+│
+├── data/                       # 數據儲存區
+│   ├── analysis_charts/        # 圖表輸出
+│   │   ├── monthly/
+│   │   └── weekly/
+│   │
+│   ├── analysis_history/       # 分析歷史 JSON
+│   │
+│   └── raw/                    # 原始爬蟲資料
+│
+├── scripts/                    # 測試腳本
+│
+├── requirements.txt            # 套件清單
+│
+└── README.md                   # 專案說明文件
+```
 
 為了確保專案在 Clone 後即可直接運行，本專案採用 `.gitkeep` 確保 `data/` 下的所有層級目錄（如 `monthly/`, `weekly/`）在 Git 倉庫中完整保留。
+
 **💡 提示**：若想實際操作並生成新檔案，建議先執行 `python auto_run_pipeline.py`。系統會自動將新產出存入對應資料夾，且不會影響現有的 Demo 檔案。
 
 ------------------------------------------------------------------------------
@@ -118,7 +135,7 @@ python auto_run_pipeline.py
 
 ## 🧪 Weekly（週報）測試
 
-模擬週一運行 → 應輸出週報。
+模擬週一運行 → 輸出週報。
 
 ### macOS / Linux
 
@@ -162,10 +179,7 @@ Remove-Item Env:TEST_MODE, Env:TEST_FILE, Env:TEST_DATE
 
 ## 🧪 Daily + Weekly + Monthly（混合測試）
 
-模擬：  
-**每月 1 號**  
-且  
-**剛好是週一** → 三種報告全部應產生。
+模擬 **每月 1 號** 且 **剛好是週一** → 三種報告全部應產生。
 
 ### macOS / Linux
 
