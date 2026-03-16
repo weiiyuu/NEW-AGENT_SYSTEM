@@ -2,14 +2,15 @@
 
 ## ⭐ 專案概述 (Project Overview)
 
-`NEW-AGENT_SYSTEM` 是一個多代理 (Multi-Agent) 驅動的數據管線系統，用於自動化爬取、清理、分析新聞內容，並依照日期 (日、週、月) 自動產生不同層級的分析報告與圖表，最後透過 Webhook 推送至下游系統（例如 n8n）。
+`NEW-AGENT_SYSTEM` 是一個多代理 (Multi-Agent) 驅動的數據管線系統，用於自動化爬取、清理、分析新聞內容，並依照日期 (日、週、月) 自動產生不同時間尺度的分析報告與圖表，最後透過 Webhook 推送至 n8n。
 
 ------------------------------------------------------------------------------
 
 ## 📊 成果預覽 (Demo Results)
 
-若您尚未運行程式，可直接查看以下預先保留的 Demo 檔案，了解系統產出格式：
+專案簡報：`docs/python&n8n_多代理自動化新聞分析系統.pdf`
 
+若尚未運行程式，可直接查看以下預先保留的 Demo 檔案，了解系統產出格式：
 1. **分析報告**：`data/analysis_history/analysis_result_demo.json`
 2. **視覺化圖表**：
    - 月報圖片範例：`data/analysis_charts/monthly/2025-12-01/30d_tags_stacked_top10_demo.png`
@@ -29,14 +30,13 @@ NEW-AGENT_SYSTEM/
 │   │   ├── crawler_agent.py
 │   │   ├── cleaner_agent.py
 │   │   ├── analyzer_agent.py
-│   │   ├── writer_agent.py
 │   │   └── reporter_agent.py
 │   │
 │   ├── pipeline.py             # Pipeline 流程控制
 │   │
 │   └── utils/                  # 工具模組
 │       └── io_helper.py
-│
+├── docs/                       # 專案簡報
 ├── data/                       # 數據儲存區
 │   ├── analysis_charts/        # 圖表輸出
 │   │   ├── monthly/
@@ -53,16 +53,14 @@ NEW-AGENT_SYSTEM/
 └── README.md                   # 專案說明文件
 ```
 
-為了確保專案在 Clone 後即可直接運行，本專案採用 `.gitkeep` 確保 `data/` 下的所有層級目錄（如 `monthly/`, `weekly/`）在 Git 倉庫中完整保留。
-
-**💡 提示**：若想實際操作並生成新檔案，建議先執行 `python auto_run_pipeline.py`。系統會自動將新產出存入對應資料夾，且不會影響現有的 Demo 檔案。
-
 ------------------------------------------------------------------------------
 
 ### 環境一致性 (Reproducibility)
 環境隔離：
 - **依賴管理**：透過 `pip freeze` 產出 `requirements.txt`，確保所有套件版本與開發環境完全一致。
-- **Git 忽略規則**：透過 `.gitignore` 精準排除 `__pycache__`、`.DS_Store` 及大量測試用原始數據，保持倉庫輕量化。
+- **Git 忽略＆保留規則**：
+    - 透過 `.gitignore` 精準排除 `__pycache__`、`.DS_Store` 及大量測試用原始數據，保持倉庫輕量化。
+    - 為了確保專案在 Clone 後即可直接運行，本專案採用 `.gitkeep` 確保 `data/` 下的所有層級目錄（如 `monthly/`, `weekly/`）在 Git 倉庫中完整保留。
 
 
 ## 🛠 環境設置與安裝 (Setup & Installation)
