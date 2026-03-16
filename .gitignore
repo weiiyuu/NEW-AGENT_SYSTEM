@@ -27,3 +27,4 @@ data/analysis_charts/**/*.png
 # IDE 設定
 .vscode/
 .DS_Store
+**/.DS_Store
