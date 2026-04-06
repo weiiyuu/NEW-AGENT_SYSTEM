@@ -1,8 +1,11 @@
-# 📄 NEW-AGENT_SYSTEM — README.md
+# 📰 Modular News Analysis Pipeline
 
 ## ⭐ 專案概述 (Project Overview)
 
-`NEW-AGENT_SYSTEM` 是一個多代理 (Multi-Agent) 驅動的數據管線系統，用於自動化爬取、清理、分析新聞內容，並依照日期 (日、週、月) 自動產生不同時間尺度的分析報告與圖表，最後透過 Webhook 推送至 n8n。
+`Modular News Analysis Pipeline` 是一個結合 **Python Data Pipeline** 與 **n8n Workflow Automation** 的新聞分析系統。
+
+系統會自動爬取新聞、進行資料清理與統計分析，並生成視覺化圖表與結構化分析結果。  
+這些資料會透過 Webhook 傳送到 n8n workflow，再由 AI API 生成每日、每週與每月的新聞分析報告並自動寄送 Email。
 
 ------------------------------------------------------------------------------
 
@@ -37,6 +40,7 @@ NEW-AGENT_SYSTEM/
 │   └── utils/                  # 工具模組
 │       └── io_helper.py
 ├── docs/                       # 專案簡報
+├── workflow/                   # n8n workflow json檔
 ├── data/                       # 數據儲存區
 │   ├── analysis_charts/        # 圖表輸出
 │   │   ├── monthly/
@@ -110,6 +114,27 @@ python auto_run_pipeline.py
 - 日報 Daily update  
 - 週報 Weekly Report（週一）  
 - 月報 Monthly Report（每月 1 日）  
+
+------------------------------------------------------------------------------
+
+## 🔄 n8n Workflow Automation
+
+Python pipeline 完成資料分析後，會透過 **Webhook** 將分析結果傳送到 n8n workflow。
+
+n8n 會負責：
+
+- workflow orchestration
+- AI API integration
+- report generation
+- email delivery
+
+系統會根據時間條件自動觸發不同 workflow：
+
+- Daily Report
+- Weekly Report
+- Monthly Report
+
+n8n workflow JSON 已匯出並存放於：workflows/
 
 ------------------------------------------------------------------------------
 

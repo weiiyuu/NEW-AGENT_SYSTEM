@@ -1,0 +1,693 @@
+{
+  "name": "run python pipline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "news-pipeline",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -256
+      ],
+      "id": "62619768-b3bb-45c2-8453-56020bad90d0",
+      "name": "Webhook",
+      "webhookId": "6ec3562d-c86c-4eec-add7-644e9b75fee5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3c3e810c-20b8-4a64-ab91-6717c5b330cb",
+              "leftValue": "={{ $json.date }}",
+              "rightValue": "={{ new Date(new Date().getTime() - 24*60*60*1000).toISOString() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -720
+      ],
+      "id": "d9918c88-ec77-44d6-b6e5-68e607a04e78",
+      "name": "篩選出當日新聞"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.todays_news_data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        528,
+        -720
+      ],
+      "id": "32f437de-304b-46fd-8fa2-90dc1c9cf196",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -720
+      ],
+      "id": "5a8bdcc8-f14e-45cf-86ce-96af03fdfdfb",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=請根據以下格式和條件回應：\n1. 以 \"鏈新聞\" 作為大標題，放在 <h2> 標籤中\n2. 生成一段每日總覽（當日趨勢或多次被提起的議題），放在 <p> 標籤中\n3. 列出 5 條重點新聞，每條新聞包含：\n   - 標題\n   - 連結\n   - 1-2 句摘要\n   用 <ol> 或 <ul> 包起來，每條新聞用 <li>，標題使用 <b> 或 <strong>，連結用 <a href=\"URL\">標題</a>\n4. 不要加任何其他文字、開頭或結尾語\n5. 完全以 HTML 格式輸出，方便直接在 Gmail 中顯示\n\n以下是新聞列表：\n{{ $json.newsText }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        -720
+      ],
+      "id": "e72c736d-b4a1-4648-98c5-d97197fe85fd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -512
+      ],
+      "id": "580c417f-9e70-4b61-84de-c610e2141e31",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m3jg0SIlnNkk7Xqh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取出 data 陣列\nconst newsArray = $input.first().json.data;\n\n// 保險：如果不是 array 直接中斷\nif (!Array.isArray(newsArray)) {\n  return [{ json: { newsText: \"\" }}];\n}\n\n// 把每筆新聞整理成 HTML\nconst newsText = newsArray.map(item => {\n  const title = item.title || \"\";\n  const link = item.link || \"\";\n  const snippet = item.content || \"\";  // 只用該筆自己的內容\n\n  return `<b><a href=\"${link}\">${title}</a></b><br>${snippet}`;\n}).join(\"<br><br>\");\n\nreturn [{ json: { newsText } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -720
+      ],
+      "id": "3addb87a-f545-4ba5-b713-299f3c4323e1",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "05baa622-cea2-40c4-9333-342b951c40b5",
+              "name": "weekly_data",
+              "value": "={{ $json.body.realtime_analysis_json.period_insights.last_7_days }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        -128
+      ],
+      "id": "ac38b467-b1f3-43a8-8cb8-fd9a2d2ad0e3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2dab77b5-6fb3-4bbc-bee5-eb40d92f8fe5",
+              "name": "monthly_data",
+              "value": "={{ $json.body.realtime_analysis_json.period_insights.last_30_days }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        272
+      ],
+      "id": "0bc36c1a-fbc2-4082-895f-4c1e8bae58d0",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node: AI 數據準備 - Weekly Report (純文字報告專用)\n// ----------------------------------------------------\n// Input 0: { weekly_data: {...} }\n// 目的: 提取和結構化所有需要的分析數據，為 AI 報告生成準備輸入。\n// ----------------------------------------------------\n\n// 1. 獲取輸入變數\nconst inputItem = $input.first().json;\nconst weeklyData = inputItem.weekly_data;\n\n// 2. 根據您的 Input 結構定義關鍵數據路徑\nconst periodInsights = weeklyData; // 您的 weekly_data 就是 periodInsights.last_7_days 的內容\nconst dailyBreakdown = periodInsights.daily_breakdown;\n\n// 3. 處理缺失的數據（⚠️ 確保 Python 端計算並傳入 content_length_stats）\n// 如果 Python 端沒有提供，這裡使用預設/假定值。\nconst contentStats = periodInsights.content_length_stats || { \n    \"average\": 11.88,\n    \"median\": 12.0,\n    \"min\": 9,\n    \"max\": 13,\n    \"std\": 1.5,\n    \"q1\": 11.0,\n    \"q3\": 12.5,\n};\n\n// 4. 初始化和計算必要的中間數據\n// 取得最新的日期\nconst latestDate = Object.keys(dailyBreakdown).sort().pop();\n// 取得整週的 Top 5 標籤\n// 確保只取前 5 個用於每日趨勢計算\nconst top5TagsAll = Object.keys(periodInsights.tag_counts).slice(0, 5); \n\n// 預先計算 Top 5 Tag 的每日趨勢數據 (tagTimeSeries)\nconst tagTimeSeries = {};\ntop5TagsAll.forEach(tag => {\n    tagTimeSeries[tag] = {};\n    for (const date in dailyBreakdown) {\n        const dailyTags = dailyBreakdown[date].tags_count || {};\n        // 從 daily_breakdown 中取得每個 tag 在該日的計數，若無則為 0\n        tagTimeSeries[tag][date] = dailyTags[tag] || 0;\n    }\n});\n\n// 5. 提取所有報告所需的數據點（原先散落在圖表 case 中的邏輯）\n\n// A. 每日文章發布量趨勢\nconst postCountTrend = {};\nfor(const date in dailyBreakdown) {\n    postCountTrend[date] = dailyBreakdown[date].post_count;\n}\n\n// B. 最新日期的標籤分佈\nconst latestDayTagDistribution = dailyBreakdown[latestDate]?.tags_count || {}; \n\n// C. 每日 Top 5 標籤細分數據 (堆疊長條圖的原始數據)\nconst dailyTop5TagBreakdown = {};\nfor (const date in dailyBreakdown) {\n    const dailyTags = dailyBreakdown[date].tags_count || {};\n    const filteredDailyTags = {};\n    top5TagsAll.forEach(tag => {\n        filteredDailyTags[tag] = dailyTags[tag] || 0;\n    });\n    dailyTop5TagBreakdown[date] = filteredDailyTags;\n}\n\n// D. 作者 × 日期發文熱力圖的原始數據\nconst dailyAuthorContribution = {};\nfor (const date in dailyBreakdown) {\n    dailyAuthorContribution[date] = dailyBreakdown[date].author_counts; \n}\n\n\n// 6. 彙整最終的 AI 分析數據物件\nconst aiAnalysisData = {\n    // 總體指標 (Period Insights)\n    overall_metrics: periodInsights,\n    \n    // 趨勢數據\n    daily_post_count_trend: postCountTrend,\n    top_5_tag_daily_trend: tagTimeSeries,\n    \n    // 分佈數據\n    overall_top_tags: periodInsights.tag_counts, \n    overall_top_authors: periodInsights.author_counts,\n    content_length_statistics: contentStats, // 字數統計\n    \n    // 細分數據\n    latest_day_tag_distribution: latestDayTagDistribution,\n    daily_top_5_tag_breakdown: dailyTop5TagBreakdown,\n    daily_author_contribution: dailyAuthorContribution,\n};\n\n\n// 7. 格式化輸出給 AI\nconst aiInputText = JSON.stringify(aiAnalysisData, null, 2);\n\nreturn [{\n    json: {\n        // AI 會讀取這個結構化的物件\n        ai_report_data: aiAnalysisData,  \n        // AI 會讀取這個格式化後的字串，作為輸入 Prompt 的一部分\n        ai_input_text: aiInputText,      \n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "87f07b1c-c646-4d94-87b5-b7868ca6e825",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=您是一位頂級的內容策略顧問（Content Strategy Consultant）。 請根據下方提供的「近七天內容分析數據」，撰寫一份極具市場洞察的《週報內容趨勢摘要》。\n\n核心目標：本報告的目標讀者是一般投資者、區塊鏈/金融科技愛好者及新聞讀者。分析重點應在於「市場熱點的捕捉」、「內容質量與穩定性」及「潛在的閱讀價值風險」，以最大化數據的實用性。\n\n報告語氣：請使用專業、清晰、客觀且帶有實用洞察的語氣。\n\n您的報告必須超越數據羅列，著重於「數據背後的意義」、「風險評估」以及「可執行的策略建議」。所有關鍵洞察必須明確引用數據點（例如：提及「Florence 貢獻了 40% 的文章」）。\n\n任務步驟與分析重點：\n\n發文概況與趨勢定性：\n分析發文量趨勢（日發文數），並定性說明內容產出模式（例如：高度穩定、波動性高、或有週期性）。\n\n內容熱點與動機歸因：\n說明總體 Top 3 核心主題及其總體佔比。\n深度分析：針對熱度有明顯變化的標籤（上升或下降），嘗試從數據中歸因可能的動機或原因（例如：是否因週末效應、特定事件或作者推動）。\n\n內容質量與長度：\n結合平均長度與標準差，評估內容產出的品質穩定度。\n提出警告：如果內容長度過於單一，請說明其對讀者留存率、品牌信任度和長期價值的潛在風險（例如：可能導致讀者疲乏）。\n\n作者貢獻與依賴風險：\n指出 Top 2 貢獻者及其貢獻文章數與總百分比。\n風險評估：針對對單一或少數作者的依賴性，提出明確的內容組合營運風險警告（例如：單點故障風險、風格單一化風險對市場份額的影響）。\n\n異常發現與立即行動：\n根據所有統計數據，指出本週最出乎意料或最具高影響的數據點（例如：某日發文量異常低、某冷門標籤突然衝入前五）。\n\n輸出格式要求：\n\n請確保輸出內容是完整的 HTML 格式（從 <div> 開始，到 </div> 結束）。請勿將原始 JSON 數據（{{ $json.ai_input_text }}）或任何標籤指令輸出到 HTML 中。\n在分析結果的文字內容中，請務必使用 HTML 的 <strong> 標籤來強調關鍵詞或分析小標題，例如：<strong style=\"color: #cc0000;\">關鍵風險提示：</strong>，以確保粗體格式正確呈現。\n\n【分析結果】欄位要求：請在每個 <li> 分析結果中，使用更多的篇幅和多層次列點**（如果適用）來闡述統計數據和結果，確保分析細節詳盡。**\n\n<div style=\"font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: auto; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);\">\n\n    <h1 style=\"color: #004d99; border-bottom: 3px solid #004d99; padding-bottom: 12px; font-size: 1.8em; margin-bottom: 20px; font-weight: 700;\">\n        🎯 本週內容焦點與讀者洞察 (Key Content Focus & Reader Insights)\n    </h1>\n    <p style=\"font-size: 1.1em; font-weight: bold; line-height: 1.6;\">\n        [核心要求：嚴格使用 3 至 4 個精準的句子，從內容實用性與閱讀穩定性的角度，總結本週最關鍵的趨勢與閱讀建議。]\n    </p>\n\n    <h2 style=\"color: #333333; margin-top: 40px; border-bottom: 1px solid #eeeeee; padding-bottom: 8px;\">\n        📈 內容趨勢與熱點分析 (Trend & Hot Topic Analysis)\n    </h2>\n    <ul style=\"padding-left: 20px; list-style-type: none;\">\n        <li style=\"margin-bottom: 20px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.1em;\">發文概況與趨勢定性：</strong> [分析結果與定性說明，並引用具體發文數]</li>\n        <li style=\"margin-bottom: 20px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.1em;\">內容熱點與動機歸因：</strong> [說明核心主題，並歸因趨勢變化的潛在動機，引用總體佔比]</li>\n       \n        <li style=\"margin-bottom: 20px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.1em;\">內容質量與長度：</strong> [評估長度穩定性，並引用平均數/中位數。必須使用 HTML 內嵌的 <ul>/<li> 拆解並說明單一長度帶來的潛在風險]</li>\n       \n        <li style=\"margin-bottom: 20px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.1em;\">作者貢獻與依賴風險：</strong> [指出 Top 2 作者及其貢獻佔比。必須使用 HTML 內嵌的 <ul>/<li> 拆解並評估對內容連續性的具體風險]</li>\n    </ul>\n\n    <h2 style=\"color: #333333; margin-top: 40px; border-bottom: 1px solid #eeeeee; padding-bottom: 8px;\">\n        ⚠️ 異常與高影響事件 (Anomalies & High-Impact Events)\n    </h2>\n    <p style=\"padding: 15px; border-left: 5px solid #ff9900; background-color: #fff8ee; font-size: 1.05em; line-height: 1.6;\">\n        [指出本週最出乎意料的數據點，例如：內容長度的統計異常，並解釋其對讀者獲取資訊的長期影響。]\n    </p>\n\n    <h2 style=\"color: #004d99; margin-top: 40px; border-bottom: 3px solid #004d99; padding-bottom: 12px; font-size: 1.8em; font-weight: 700;\">\n        💡 實用啟示與閱讀建議 (Practical Takeaways & Reading Strategy)\n    </h2>\n    <ul style=\"list-style-type: disc; padding-left: 20px; line-height: 1.6;\">\n        <li style=\"margin-bottom: 15px;\">【商業信號】贊助內容的價值與辨識： [分析『贊助文章』的穩定性及其對內容流的影響，提供讀者如何看待和利用這些商業資訊的建議。]</li>\n        <li style=\"margin-bottom: 15px;\">【市場熱點】與未來關注方向： [針對核心主題的重度依賴，評估市場風險，並建議讀者應關注或佈局的新興潛力主題，以確保資訊多元化。]</li>\n        <li style=\"margin-bottom: 15px;\">【閱讀穩定性】確保資訊不中斷： [針對『內容品質短缺』和『作者依賴』這兩大風險，提出讀者應如何調整閱讀策略、分散資訊來源的實用建議。此項建議必須以 HTML 內嵌的 <ul>/<li> 格式呈現，並確保內容極度精煉，專注於可執行性。]</li>\n    </ul>\n    \n\n</div>",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        -128
+      ],
+      "id": "5be00255-a8b0-401b-b9d6-97dc6902fd26",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        80
+      ],
+      "id": "84687d1c-50cd-4a74-aa7a-e229035d26ab",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m3jg0SIlnNkk7Xqh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "alexchang0531@gmail.com",
+        "subject": "={{ \"區塊鏈新聞週報 (\" + $now.format(\"yyyy-MM-dd\") + \")\" }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        -128
+      ],
+      "id": "ffefc6a5-8d16-4a5a-b31f-a15aefebf719",
+      "name": "Send a message1",
+      "webhookId": "bbee90d0-ce4a-4e76-b168-7777669258bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUCJpk0tsc7Lpyzk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e779db91-145a-4ff9-9625-1eeec460910d",
+              "leftValue": "={{ $json.body.report_tags.includes(\"Weekly Report\") }}",
+              "rightValue": "Daily Update",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -112
+      ],
+      "id": "9f85b937-3391-48b3-949e-3aa2cb0ee108",
+      "name": "判斷是否生成週報告"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e779db91-145a-4ff9-9625-1eeec460910d",
+              "leftValue": "={{ $json.body.report_tags.includes(\"Monthly Report\") }}",
+              "rightValue": "Daily Update",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        288
+      ],
+      "id": "8e10c1f1-8b38-483c-a83b-7bf35de4dda3",
+      "name": "判斷是否生成月報告"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node: AI 數據準備 - Monthly Report (純文字報告專用)\n// ----------------------------------------------------\n// Input 0: { monthly_data: {...} }\n// 目的: 提取和結構化所有需要的分析數據，為 AI 月度報告生成準備輸入。\n// ----------------------------------------------------\n\n// 1. 獲取輸入變數\nconst inputItem = $input.first().json;\n// 假設您的月度數據輸入變數名稱為 monthly_data\nconst monthlyData = inputItem.monthly_data; \n\n// 2. 根據您的 Input 結構定義關鍵數據路徑\nconst periodInsights = monthlyData; // 您的 monthly_data 應包含所有月度彙總內容\nconst dailyBreakdown = periodInsights.daily_breakdown;\n\n// 3. 處理缺失的內容長度統計數據（用於內容質量分析）\n// 如果 Python 端沒有提供，這裡使用預設/假定值。\nconst contentStats = periodInsights.content_length_stats || { \n    \"average\": 12.5,\n    \"median\": 12.0,\n    \"min\": 9,\n    \"max\": 16,\n    \"std\": 2.0,\n    \"q1\": 11.0,\n    \"q3\": 14.0,\n};\n\n// 4. 初始化和計算必要的中間數據\n// 取得最新的日期（通常是該月的最後一天）\nconst latestDate = Object.keys(dailyBreakdown).sort().pop();\n// 取得整月 Top 5 標籤\nconst top5TagsAll = Object.keys(periodInsights.tag_counts).slice(0, 5); \n\n// 預先計算 Top 5 Tag 的每日趨勢數據 (tagTimeSeries)\nconst tagTimeSeries = {};\ntop5TagsAll.forEach(tag => {\n    tagTimeSeries[tag] = {};\n    for (const date in dailyBreakdown) {\n        const dailyTags = dailyBreakdown[date].tags_count || {};\n        // 從 daily_breakdown 中取得每個 tag 在該日的計數，若無則為 0\n        tagTimeSeries[tag][date] = dailyTags[tag] || 0;\n    }\n});\n\n// 5. 提取所有報告所需的數據點（確保是純粹的結構化數據，而非圖表配置）\n\n// A. 每日文章發布量趨勢\nconst postCountTrend = {};\nfor(const date in dailyBreakdown) {\n    postCountTrend[date] = dailyBreakdown[date].post_count;\n}\n\n// B. 最新日期的標籤分佈\nconst latestDayTagDistribution = dailyBreakdown[latestDate]?.tags_count || {}; \n\n// C. 每日 Top 5 標籤細分數據\nconst dailyTop5TagBreakdown = {};\nfor (const date in dailyBreakdown) {\n    const dailyTags = dailyBreakdown[date].tags_count || {};\n    const filteredDailyTags = {};\n    top5TagsAll.forEach(tag => {\n        filteredDailyTags[tag] = dailyTags[tag] || 0;\n    });\n    dailyTop5TagBreakdown[date] = filteredDailyTags;\n}\n\n// D. 作者 × 日期發文熱力圖的原始數據 (用於分析作者穩定性)\nconst dailyAuthorContribution = {};\nfor (const date in dailyBreakdown) {\n    dailyAuthorContribution[date] = dailyBreakdown[date].author_counts; \n}\n\n\n// 6. 彙整最終的 AI 分析數據物件\nconst aiAnalysisData = {\n    // 總體指標 (Period Insights)\n    overall_metrics: periodInsights,\n    \n    // 趨勢數據 (月度數據，但以日為單位細分)\n    daily_post_count_trend: postCountTrend,\n    top_5_tag_daily_trend: tagTimeSeries,\n    \n    // 分佈數據\n    overall_top_tags: periodInsights.tag_counts, \n    overall_top_authors: periodInsights.author_counts,\n    content_length_statistics: contentStats, // 字數統計\n    \n    // 細分數據\n    latest_day_tag_distribution: latestDayTagDistribution,\n    daily_top_5_tag_breakdown: dailyTop5TagBreakdown,\n    daily_author_contribution: dailyAuthorContribution,\n};\n\n\n// 7. 格式化輸出給 AI (這是 AI 報告的實際輸入)\n// const aiInputText = JSON.stringify(aiAnalysisData, null, 2); // 保持計算但未輸出\n\nreturn [{\n    json: {\n        // AI 會讀取這個結構化的物件\n        ai_report_data: aiAnalysisData,  \n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        272
+      ],
+      "id": "b85fb1af-6303-4d6b-a7d9-f56df034df85",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=您是一位頂級的內容策略顧問（Content Strategy Consultant）。 請根據下方提供的「本月度內容分析數據」，撰寫一份極具市場洞察的《月度內容趨勢摘要》。\n\n核心目標：本報告的目標讀者是一般投資者、區塊鏈/金融科技愛好者及新聞讀者。分析重點應在於「市場熱點的長期捕捉」、「內容深度的穩定性」及「潛在的閱讀價值風險」，以最大化數據的實用性與可操作性。\n\n報告語氣：請使用專業、清晰、客觀且帶有實用洞察的語氣。\n\n您的報告必須超越數據羅列，著重於「數據背後的長期意義」、「對讀者資訊攝取的價值風險評估」以及「可執行的閱讀策略建議」。所有關鍵洞察必須明確引用數據點（例如：提及「本月文章總發文量為 [總文章數] 篇」）。\n\n任務步驟與分析重點：\n\n發文概況與長期穩定性分析：\n分析月度總發文量、日平均發文量及每日發文量趨勢，並定性說明內容產出模式的長期穩定性和任何週期性波動（例如：是否有長期產出疲軟的現象）。\n\n內容戰略焦點與趨勢分析：\n說明總體 Top 5 核心主題及其總體佔比。\n深度分析：針對熱度長期穩定或有結構性變化的標籤，提出對未來市場焦點或讀者興趣遷移的洞察。例如，某標籤的穩定增長可能預示著一個重要的市場敘事正在形成。\n\n內容深度與多樣性評估：\n結合平均長度、中位數、四分位距（Q1/Q3）與標準差（Std），評估內容產出的月度深度穩定度與多樣性。\n提出警告：如果內容長度分佈過於單一（低標準差），請說明其對讀者在單一平台上獲取深度知識的潛在風險（例如：可能導致讀者疲乏或錯過深入研究的機會）。\n\n作者觀點與風格單一風險：\n指出 Top 3 貢獻者及其貢獻文章數與總百分比。\n風險評估：針對對少數 Top 作者的觀點依賴性，提出明確的內容風格單一化對讀者視野廣度的長期影響警告，並建議讀者應如何交叉驗證資訊來源。\n\n異常發現與關鍵信號：\n根據所有統計數據，指出本月最能體現「市場敘事結構變化」或「內容深度異常」的數據點。\n針對此偏差，提出具體、可執行的中期閱讀策略建議。\n\n輸出格式要求：\n\n請確保輸出內容是完整的 HTML 格式（從 <div> 開始，到 </div> 結束）。請勿將原始 JSON 數據（{{ JSON.stringify($json.ai_report_data, null, 2) }}）或任何標籤指令輸出到 HTML 中。\n在分析結果的文字內容中，請務必使用 HTML 的 <strong> 標籤來強調關鍵詞或分析小標題，例如：<strong style=\"color: #004d99;\">深度閱讀建議：</strong>，以確保粗體格式正確呈現。\n\n【分析結果】欄位要求：請在每個 <li> 分析結果中，使用更多的篇幅和多層次列點（如果適用）來闡述統計數據和結果，確保分析細節詳盡，並聚焦於實用閱讀洞察。\n\n--- 數據輸入 ---\n以下是本月度內容分析數據：\n\n{{ JSON.stringify($json.ai_report_data, null, 2) }}\n\n\n\n--- HTML 報告模板 ---\n\n<div style=\"font-family: 'Inter', Arial, sans-serif; padding: 25px; max-width: 1000px; margin: auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1);\">\n\n<h1 style=\"color: #004d99; border-bottom: 4px solid #004d99; padding-bottom: 15px; font-size: 2.0em; margin-bottom: 30px; font-weight: 800; text-align: center;\">\n📈 【月度內容趨勢摘要：讀者實用洞察】\n</h1>\n\n<div style=\"background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #cceeff;\">\n<h2 style=\"color: #004d99; margin-top: 0; font-size: 1.4em;\">🎯 核心閱讀啟示 (Key Reading Takeaways)</h2>\n<p style=\"font-size: 1.1em; font-weight: 500; line-height: 1.8; color: #333333;\">\n[核心要求：嚴格使用 4 至 5 個精準的句子，從市場結構變化、資訊攝取效率與內容深度的角度，總結本月最關鍵的趨勢與對讀者的實用建議。]\n</p>\n</div>\n\n<h2 style=\"color: #333333; margin-top: 40px; border-bottom: 2px solid #eeeeee; padding-bottom: 10px; font-size: 1.5em; font-weight: 700;\">\n📊 市場焦點與內容結構分析 (Market Focus & Content Structure)\n</h2>\n<ul style=\"padding-left: 20px; list-style-type: none;\">\n<li style=\"margin-bottom: 25px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.15em;\">發文概況與長期穩定性：</strong> [分析結果與定性說明，引用總發文量、日平均數，並定性月內波動模式]</li>\n<li style=\"margin-bottom: 25px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.15em;\">核心主題分佈與未來趨勢：</strong> [說明 Top 5 核心主題的戰略意義和總體佔比。必須以 HTML 內嵌的 <ul>/<li> 拆解並闡述內容焦點是否成功捕捉長期市場趨勢，以及讀者應如何對應調整關注點。]</li>\n\n<li style=\"margin-bottom: 25px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.15em;\">內容深度與品質穩定度：</strong> [評估內容長度分佈（Min, Max, Q1/Q3, Std）。必須使用 HTML 內嵌的 <ul>/<li> 拆解並說明內容單一化對讀者深度學習的長期風險，提供分散閱讀源的建議。]</li>\n\n<li style=\"margin-bottom: 25px; padding-left: 0;\"><strong style=\"color: #007bff; font-size: 1.15em;\">作者觀點與風格集中風險：</strong> [指出 Top 3 作者及其貢獻佔比。必須使用 HTML 內嵌的 <ul>/<li> 拆解並評估對讀者視野廣度的風險，建議讀者閱讀策略。]</li>\n\n\n</ul>\n\n<h2 style=\"color: #333333; margin-top: 40px; border-bottom: 2px solid #eeeeee; padding-bottom: 10px; font-size: 1.5em; font-weight: 700;\">\n⚠️ 關鍵市場信號與異常提醒 (Market Signals & Anomaly Alert)\n</h2>\n<p style=\"padding: 15px; border-left: 5px solid #cc0000; background-color: #fff0f0; font-size: 1.05em; line-height: 1.6; color: #cc0000; font-weight: 600;\">\n[指出本月最能體現市場敘事結構變化或內容深度異常的數據點。例如：某個戰略標籤整月表現持續低迷，或內容長度標準差過低，並解釋其對讀者獲取多元、深入資訊的潛在影響。]\n</p>\n\n<h2 style=\"color: #004d99; margin-top: 40px; border-bottom: 4px solid #004d99; padding-bottom: 15px; font-size: 1.8em; font-weight: 800; text-align: center;\">\n💡 實用啟示與行動閱讀指南 (Practical Takeaways & Reading Guide)\n</h2>\n<ul style=\"list-style-type: disc; padding-left: 30px; line-height: 1.7; font-size: 1.05em;\">\n<li style=\"margin-bottom: 18px;\"><strong style=\"color: #006600;\">【資訊辨識】贊助內容的價值與位置：</strong> [分析『贊助文章』的穩定性及其對內容流的影響，提供讀者如何看待和利用這些商業資訊的建議，例如判斷其是否為行業風向標。]</li>\n<li style=\"margin-bottom: 18px;\"><strong style=\"color: #006600;\">【投資布局】熱點與未來關注方向：</strong> [針對核心主題的重度依賴，評估市場潛在的資訊飽和風險，並建議讀者應關注或佈局哪些非主流但有潛力的新興主題，以確保投資決策的資訊多元化。]</li>\n<li style=\"margin-bottom: 18px;\"><strong style=\"color: #006600;\">【個人策略】最大化閱讀效率：</strong> [針對『內容深度不足』和『作者風格集中』這兩大風險，提出讀者應如何調整閱讀策略、分散資訊來源的實用建議。此項建議必須以 HTML 內嵌的 <ul>/<li> 格式呈現，並確保內容極度精煉，專注於可執行的實用標準。]</li>\n</ul>\n\n</div>",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        272
+      ],
+      "id": "7bdbaaf7-27de-4478-b75e-788b6b022a1f",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        480
+      ],
+      "id": "9cbb7921-04b1-47f6-a5af-1dd0e36c5587",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m3jg0SIlnNkk7Xqh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "alexchang0531@gmail.com",
+        "subject": "={{ \"區塊鏈新聞月報 (\" + $now.format(\"yyyy-MM-dd\") + \")\" }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        272
+      ],
+      "id": "d49f75ab-7c86-4b0c-aa65-fa5ab43608dc",
+      "name": "Send a message",
+      "webhookId": "bbee90d0-ce4a-4e76-b168-7777669258bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUCJpk0tsc7Lpyzk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "alexchang0531@gmail.com",
+        "subject": "={{ \"區塊鏈新聞日報 (\" + $now.format(\"yyyy-MM-dd\") + \")\" }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        -720
+      ],
+      "id": "3d9a2225-6d55-4a8a-8d83-575af25a8642",
+      "name": "Send a message2",
+      "webhookId": "bbee90d0-ce4a-4e76-b168-7777669258bb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUCJpk0tsc7Lpyzk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 每週＆每月彙整報告生成流程",
+        "height": 976,
+        "width": 1984
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -336
+      ],
+      "id": "a0f5864b-9b6e-41a4-a415-2626071181de",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 每日日報生成流程\n",
+        "height": 528,
+        "width": 1984,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -864
+      ],
+      "id": "d4fb66f8-c6ab-4fea-bb89-1027b96357b4",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e779db91-145a-4ff9-9625-1eeec460910d",
+              "leftValue": "={{ $json.body.report_tags.includes(\"Daily Update\") }}",
+              "rightValue": "Daily Update",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -704
+      ],
+      "id": "f513180e-0b41-4d85-a2cc-1e80b33a9240",
+      "name": "產生每日報告"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "產生每日報告",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "判斷是否生成週報告",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "判斷是否生成月報告",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "篩選出當日新聞",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "篩選出當日新聞": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷是否生成週報告": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷是否生成月報告": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生每日報告": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fa5cc3f1-c54b-44ba-adaf-07e1e77ab965",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b17ef6d19c7a5b1ee83b907c595526dcb1eb06db8227d650d5dda0a9f4ce8cd9"
+  },
+  "id": "ikHZwS7VzrjAdH5h",
+  "tags": []
+}
