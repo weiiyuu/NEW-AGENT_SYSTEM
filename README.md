@@ -2,7 +2,7 @@
 
 ## ⭐ 專案概述 (Project Overview)
 
-`Modular News Analysis Pipeline` 是一個結合 **Python Data Pipeline** 與 **n8n Workflow Automation** 的新聞分析系統。
+`modular-news-analysis-pipeline` 是一個結合 **Python Data Pipeline** 與 **n8n Workflow Automation** 的新聞分析系統。
 
 系統會自動爬取新聞、進行資料清理與統計分析，並生成視覺化圖表與結構化分析結果。  
 這些資料會透過 Webhook 傳送到 n8n workflow，再由 AI API 生成每日、每週與每月的新聞分析報告並自動寄送 Email。
@@ -11,7 +11,7 @@
 
 ## 📊 成果預覽 (Demo Results)
 
-專案簡報：`docs/python&n8n_多代理自動化新聞分析系統.pdf`
+專案簡報：`docs/python&n8n_多代理自動化新聞分析系統_簡報.pdf`
 
 若尚未運行程式，可直接查看以下預先保留的 Demo 檔案，了解系統產出格式：
 1. **分析報告**：`data/analysis_history/analysis_result_demo.json`
@@ -24,7 +24,7 @@
 ## 📁 專案目錄結構 (Directory Structure)
 
 ```text
-NEW-AGENT_SYSTEM/
+modular-news-analysis-pipeline/
 │
 ├── auto_run_pipeline.py        # 主程式，啟動整個 Agent Pipeline
 │
@@ -74,7 +74,7 @@ NEW-AGENT_SYSTEM/
 ### 1. 進入專案根目錄
 
 ```bash
-cd NEW-AGENT_SYSTEM
+cd modular-news-analysis-pipeline
 ```
 
 ---
